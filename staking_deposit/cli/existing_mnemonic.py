@@ -31,21 +31,27 @@ def load_mnemonic_arguments_decorator(function: Callable[..., Any]) -> Callable[
     decorators = [
         jit_option(
             callback=validate_mnemonic,
-            help=lambda: load_text(['arg_mnemonic', 'help'], func='existing_mnemonic'),
+            help=lambda: load_text(
+                ['arg_mnemonic', 'help'], func='existing_mnemonic'),
             param_decls='--mnemonic',
-            prompt=lambda: load_text(['arg_mnemonic', 'prompt'], func='existing_mnemonic'),
+            prompt=lambda: load_text(
+                ['arg_mnemonic', 'prompt'], func='existing_mnemonic'),
             type=str,
         ),
         jit_option(
             callback=captive_prompt_callback(
                 lambda x: x,
-                lambda: load_text(['arg_mnemonic_password', 'prompt'], func='existing_mnemonic'),
-                lambda: load_text(['arg_mnemonic_password', 'confirm'], func='existing_mnemonic'),
-                lambda: load_text(['arg_mnemonic_password', 'mismatch'], func='existing_mnemonic'),
+                lambda: load_text(
+                    ['arg_mnemonic_password', 'prompt'], func='existing_mnemonic'),
+                lambda: load_text(
+                    ['arg_mnemonic_password', 'confirm'], func='existing_mnemonic'),
+                lambda: load_text(
+                    ['arg_mnemonic_password', 'mismatch'], func='existing_mnemonic'),
                 True,
             ),
             default='',
-            help=lambda: load_text(['arg_mnemonic_password', 'help'], func='existing_mnemonic'),
+            help=lambda: load_text(
+                ['arg_mnemonic_password', 'help'], func='existing_mnemonic'),
             hidden=True,
             param_decls='--mnemonic-password',
             prompt=False,
@@ -65,23 +71,36 @@ def validate_mnemonic(ctx: click.Context, param: Any, mnemonic: str) -> str:
 
 
 @click.command(
-    help=load_text(['arg_existing_mnemonic', 'help'], func='existing_mnemonic'),
+    help=load_text(['arg_existing_mnemonic', 'help'],
+                   func='existing_mnemonic'),
 )
 @load_mnemonic_arguments_decorator
 @jit_option(
     callback=captive_prompt_callback(
         lambda num: validate_int_range(num, 0, 2**32),
-        lambda: load_text(['arg_validator_start_index', 'prompt'], func='existing_mnemonic'),
-        lambda: load_text(['arg_validator_start_index', 'confirm'], func='existing_mnemonic'),
+        lambda: load_text(['arg_validator_start_index',
+                          'prompt'], func='existing_mnemonic'),
+        lambda: load_text(['arg_validator_start_index',
+                          'confirm'], func='existing_mnemonic'),
     ),
     default=0,
-    help=lambda: load_text(['arg_validator_start_index', 'help'], func='existing_mnemonic'),
+    help=lambda: load_text(
+        ['arg_validator_start_index', 'help'], func='existing_mnemonic'),
     param_decls="--validator_start_index",
-    prompt=lambda: load_text(['arg_validator_start_index', 'prompt'], func='existing_mnemonic'),
+    prompt=lambda: load_text(
+        ['arg_validator_start_index', 'prompt'], func='existing_mnemonic'),
 )
 @generate_keys_arguments_decorator
+@jit_option(
+    # Only for devnet tests
+    default=None,
+    help="[DEVNET ONLY] Set specific GENESIS_FORK_VERSION value",
+    param_decls='--devnet_chain_setting',
+)
 @click.pass_context
-def existing_mnemonic(ctx: click.Context, mnemonic: str, mnemonic_password: str, **kwargs: Any) -> None:
-    ctx.obj = {} if ctx.obj is None else ctx.obj  # Create a new ctx.obj if it doesn't exist
-    ctx.obj.update({'mnemonic': mnemonic, 'mnemonic_password': mnemonic_password})
+def existing_mnemonic(ctx: click.Context, mnemonic: str, mnemonic_password: str, devnet_chain_setting: str, **kwargs: Any) -> None:
+    # Create a new ctx.obj if it doesn't exist
+    ctx.obj = {} if ctx.obj is None else ctx.obj
+    ctx.obj.update(
+        {'mnemonic': mnemonic, 'mnemonic_password': mnemonic_password})
     ctx.forward(generate_keys)
